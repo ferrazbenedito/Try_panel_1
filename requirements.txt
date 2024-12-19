@@ -1,3 +1,4 @@
 panel
-pandas
 bokeh
+pandas
+gunicorn
