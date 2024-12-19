@@ -1,1 +1,1 @@
-web: panel serve app.py --address=0.0.0.0 --port=$PORT
+web: panel serve panel_form_app.py --port=$PORT --address=0.0.0.0

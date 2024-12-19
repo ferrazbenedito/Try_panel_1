@@ -1,51 +1,64 @@
 import panel as pn
 import pandas as pd
-import calculations as c
+import os
 
+# Initialize Panel extension
 pn.extension()
 
-# Function to process questionnaire responses
-def process_questionnaire(event):
-    # Save responses to a CSV file
-    responses = {key: value for key, value in inputs.items()}
-    df_responses = pd.DataFrame([responses])
-    df_responses.to_csv("responses.csv", index=False)
+# Define the questions
+questions = [
+    ("What is your name?", "name"),
+    ("What is your age?", "age"),
+    ("What is your favorite color?", "favorite_color"),
+    ("What is your favorite hobby?", "hobby"),
+    ("Where do you live?", "location"),
+]
 
-def your_calculation_function(resposta):
-    
+# Create input widgets for each question
+inputs = {key: pn.widgets.TextInput(name=question) for question, key in questions}
 
+# File to store responses
+csv_file = "responses.csv"
 
-    # Run calculations (imported from your script)
-    results = c.your_calculation_function(df_responses)  # Replace with your actual function
+# Save responses to CSV
+def save_responses(event):
+    response_data = {key: widget.value for key, widget in inputs.items()}
+    df = pd.DataFrame([response_data])
 
-    # Save results to an Excel file
-    results.to_excel("results.xlsx", index=False)
+    # Check if the file exists, append if it does
+    if os.path.exists(csv_file):
+        df.to_csv(csv_file, mode='a', header=False, index=False)
+    else:
+        df.to_csv(csv_file, index=False)
 
-    # Provide a download link for the results
-    download_button.filename = "results.xlsx"
-    download_button.file = "results.xlsx"
+    # Show success message
+    status_pane.object = "Responses saved successfully!"
 
-# Define inputs
-inputs = {
-    "Question 1": pn.widgets.IntInput(name="Enter your response for Question 1"),
-    "Question 2": pn.widgets.IntInput(name="Enter a number for Question 2"),
-    # Add more inputs as needed
-}
-
-# Add a submit button
+# Create a submit button
 submit_button = pn.widgets.Button(name="Submit", button_type="primary")
-submit_button.on_click(process_questionnaire)
+submit_button.on_click(save_responses)
 
-# Add a download button
-download_button = pn.widgets.FileDownload(button_type="success", disabled=True)
+# Create a status pane to display messages
+status_pane = pn.pane.Markdown("", style={'color': 'green'})
 
-# Layout
-dashboard = pn.Column(
-    pn.pane.Markdown("# Questionnaire"),
-    *inputs.values(),
+# Layout the form
+form = pn.Column(
+    pn.pane.Markdown("## Answer the questions below:"),
+    *[inputs[key] for key in inputs],
     submit_button,
-    download_button
+    status_pane,
 )
 
-if __name__ == "__main__":
-    dashboard.servable()
+# Serve the app
+app = pn.template.FastListTemplate(
+    title="Simple Survey App",
+    main=[form],
+)
+
+# Run this to serve locally
+def serve():
+    app.show()
+
+# For deployment to Heroku
+def panel_serve():
+    return app
